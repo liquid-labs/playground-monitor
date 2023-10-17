@@ -111,18 +111,6 @@ const PlaygroundMonitor = class {
     })
 
     return readyPromise
-    /*
-    this.#watcher.on('unlinkDir', (path) => {
-      this.#watcher.unwatch(path)
-      for (const [key, { projectPath }] of Object.entries(this.#data)) {
-        if (path === projectPath) {
-          delete this.#data[key]
-          break
-        }
-      }
-    })
-*/
-    // return this
   }
 }
 
