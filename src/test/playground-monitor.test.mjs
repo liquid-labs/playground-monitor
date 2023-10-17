@@ -4,6 +4,8 @@ import * as fsPath from 'node:path'
 
 import { PlaygroundMonitor } from '../playground-monitor'
 
+const SETTLE_TIME = 200
+
 describe('PlaygroundMonitor', () => {
   describe('loads playground', () => {
     const playgroundAPath = fsPath.join(__dirname, 'data', 'playgroundA')
@@ -52,7 +54,7 @@ describe('PlaygroundMonitor', () => {
 
         await fs.writeFile(newProjPkgJSONPath, newProjPkgJSON)
 
-        await new Promise(resolve => setTimeout(resolve, 200))
+        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
 
         expect(playground.getProjectData('empty-dir')).toBeTruthy()
       }
@@ -74,7 +76,7 @@ describe('PlaygroundMonitor', () => {
         await fs.mkdir(newProjPath)
         await fs.writeFile(newProjPkgJSONPath, newProjPkgJSON)
 
-        await new Promise(resolve => setTimeout(resolve, 200))
+        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
 
         expect(playground.getProjectData('new-project')).toBeTruthy()
       }
@@ -93,7 +95,7 @@ describe('PlaygroundMonitor', () => {
 
         await fs.rm(projPath, { recursive : true })
 
-        await new Promise(resolve => setTimeout(resolve, 200))
+        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
 
         expect(playground.getProjectData('@orgA/project-01')).toBe(undefined)
       }
@@ -111,7 +113,7 @@ describe('PlaygroundMonitor', () => {
 
         await fs.rm(projPath, { recursive : true })
 
-        await new Promise(resolve => setTimeout(resolve, 200))
+        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
 
         expect(playground.getProjectData('root-proj')).toBe(undefined)
       }
