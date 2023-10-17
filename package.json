@@ -1,17 +1,46 @@
 {
   "name": "@liquid-labs/playground-monitor",
   "version": "1.0.0-alpha.0",
-  "description": "",
+  "description": "A file-watching utility to track changes to a developers \"playground\".",
   "main": "dist/playground-monitor.js",
+  "files": [
+    "./dist",
+    "LICENSE.txt",
+    "README.md"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "make",
+    "lint": "make lint",
+    "lint:fix": "make lint-fix",
+    "test": "make test",
+    "prepack": "make build",
+    "preversion": "make test && make lint",
+    "qa": "make qa"
   },
-  "keywords": [],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "file",
+    "watch",
+    "watch file",
+    "watcher",
+    "watchFile"
+  ],
   "author": "Zane Rockenbaugh <zane@liquid-labs.com>",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "repository": "git+ssh://git@github.com/liquid-labs/playground-monitor.git",
   "bugs": {
     "url": "https://github.com/liquid-labs/playground-monitor/issues"
   },
-  "homepage": "https://github.com/liquid-labs/playground-monitor#readme"
+  "homepage": "https://github.com/liquid-labs/playground-monitor#readme",
+  "dependencies": {
+    "@liquid-labs/find-plus": "^1.0.1",
+    "chokidar": "^3.5.3"
+  },
+  "devDependencies": {
+    "@liquid-labs/catalyst-resource-babel-and-rollup": "^1.0.0-alpha.3",
+    "@liquid-labs/catalyst-resource-eslint": "^1.0.0-alpha.1",
+    "@liquid-labs/catalyst-resource-jest": "^1.0.0-alpha.3"
+  }
 }
