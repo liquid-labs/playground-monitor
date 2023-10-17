@@ -1,0 +1,25 @@
+Test git rev: 6ef1f2ee50a28b79904191f50cfa2421d0625d6b
+PASS test/playground-monitor.test.js
+  PlaygroundMonitor
+    loads playground
+      ✓ and list projects (1 ms)
+      ✓ and retrieve project data
+      ✓ loads projects regardless of location (within depth)
+      ✓ can re-load playground (4 ms)
+    tracks changes
+      ✓ when a new project is added (existing dir) (208 ms)
+      ✓ when a new project is added (dir and package.json added) (215 ms)
+      ✓ when project is deleted (nested dir) (214 ms)
+      ✓ when project is deleted (just package.json) (214 ms)
+
+------------------------|---------|----------|---------|---------|-------------------
+File                    | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+------------------------|---------|----------|---------|---------|-------------------
+All files               |   94.44 |    89.47 |   86.66 |      96 |                   
+ playground-monitor.mjs |   94.44 |    89.47 |   86.66 |      96 | 42,72             
+------------------------|---------|----------|---------|---------|-------------------
+Test Suites: 1 passed, 1 total
+Tests:       8 passed, 8 total
+Snapshots:   0 total
+Time:        1.041 s
+Ran all test suites.
