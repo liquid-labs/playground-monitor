@@ -30,9 +30,16 @@ describe('Playground', () => {
     test('loads projects regardless of location (within depth)', () => {
       expect(playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
     })
+
+    test('can re-load playground', async () => {
+      await playground.refreshProjects()
+
+      expect(playground.listProjects()).toHaveLength(3)
+      expect(playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
+    })
   })
 
-  describe('reloads playground', () => {
+  describe('tracks changes', () => {
     const playgroundBPath = fsPath.join(__dirname, 'data', 'playgroundB')
 
     test('when a new project is added (existing dir)', async() => {
@@ -50,7 +57,6 @@ describe('Playground', () => {
         expect(playground.getProjectData('empty-dir')).toBeTruthy()
       }
       finally {
-        console.log('closing...') // DEBUG
         await playground.close()
       }
     })
@@ -72,7 +78,6 @@ describe('Playground', () => {
         expect(playground.getProjectData('new-project')).toBeTruthy()
       }
       finally {
-        console.log('closing...') // DEBUG
         await playground.close()
       }
     })
@@ -91,7 +96,6 @@ describe('Playground', () => {
         expect(playground.getProjectData('@orgA/project-01')).toBe(undefined)
       }
       finally {
-        console.log('closing...') // DEBUG
         await playground.close()
       }
     })
@@ -110,7 +114,6 @@ describe('Playground', () => {
         expect(playground.getProjectData('root-proj')).toBe(undefined)
       }
       finally {
-        console.log('closing...') // DEBUG
         await playground.close()
       }
     })
