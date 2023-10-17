@@ -38,9 +38,13 @@ const PlaygroundMonitor = class {
     return structuredClone(this.#data[projectName])
   }
 
+  getWatched() {
+    return this.#watcher.getWatched()
+  }
+
   async refreshProjects() {
     if (this.#watcher) {
-      this.#watcher.unwatch('**/*')
+      await this.#watcher.close()
     }
 
     const projectDirs = await find({
@@ -76,32 +80,38 @@ const PlaygroundMonitor = class {
 
     const toWatch = await find({ depth : this.#depth, root : this.#root, tests : [dirOrPackageJSON] })
 
-    this.#watcher = chokidar.watch(toWatch)
-
-    this.#watcher.on('add', loadPkg)
-    this.#watcher.on('change', loadPkg)
-    this.#watcher.on('unlink', (path) => {
-      if (path.endsWith('package.json')) {
-        this.#watcher.unwatch(path)
-        const testPath = fsPath.dirname(path)
-        for (const [key, { projectPath }] of Object.entries(this.#data)) {
-          if (testPath === projectPath) {
-            delete this.#data[key]
-            break
+    const readyPromise = new Promise((resolve) => {
+      this.#watcher = chokidar.watch(toWatch, { ignoreInitial: true })
+        .on('ready', () => {
+          resolve()
+        })
+        .on('add', loadPkg)
+        .on('change', loadPkg)
+        .on('unlink', (path) => {
+          if (path.endsWith('package.json')) {
+            this.#watcher.unwatch(path)
+            const testPath = fsPath.dirname(path)
+            for (const [key, { projectPath }] of Object.entries(this.#data)) {
+              if (testPath === projectPath) {
+                delete this.#data[key]
+                break
+              }
+            }
           }
-        }
-      }
+        })
+        .on('addDir', (path) => { // only watch dirs within 'depth' of #root
+          let testPath = path
+          for (let depth = 0; depth <= this.#depth; depth += 1) {
+            if (testPath === this.#root) {
+              this.#watcher.add(path)
+            }
+            testPath = fsPath.dirname(testPath)
+          }
+        })
     })
 
-    this.#watcher.on('addDir', (path) => { // only watch dirs within 'depth' of #root
-      let testPath = path
-      for (let depth = 0; depth <= this.#depth; depth += 1) {
-        if (testPath === this.#root) {
-          this.#watcher.add(path)
-        }
-        testPath = fsPath.dirname(testPath)
-      }
-    })
+    return readyPromise
+    /*
     this.#watcher.on('unlinkDir', (path) => {
       this.#watcher.unwatch(path)
       for (const [key, { projectPath }] of Object.entries(this.#data)) {
@@ -111,8 +121,8 @@ const PlaygroundMonitor = class {
         }
       }
     })
-
-    return this
+*/
+    // return this
   }
 }
 
