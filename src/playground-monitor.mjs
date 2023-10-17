@@ -81,7 +81,7 @@ const PlaygroundMonitor = class {
     const toWatch = await find({ depth : this.#depth, root : this.#root, tests : [dirOrPackageJSON] })
 
     const readyPromise = new Promise((resolve) => {
-      this.#watcher = chokidar.watch(toWatch, { ignoreInitial: true })
+      this.#watcher = chokidar.watch(toWatch, { ignoreInitial : true })
         .on('ready', () => {
           resolve()
         })
