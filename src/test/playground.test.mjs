@@ -62,11 +62,12 @@ describe('Playground', () => {
     })
 
     test('when a new project is added (dir and package.json added)', async() => {
+      const newProjPath = fsPath.join(playgroundBPath, 'new-proj')
+      
       const playground = new Playground({ root: playgroundBPath })
       try {
         await playground.refreshProjects()
 
-        const newProjPath = fsPath.join(playgroundBPath, 'new-proj')
         const newProjPkgJSONPath = fsPath.join(newProjPath, 'package.json')
         const newProjPkgJSON = '{ "name": "new-project" }'
 
@@ -79,6 +80,7 @@ describe('Playground', () => {
       }
       finally {
         await playground.close()
+        await fs.rm(newProjPath, { recursive: true })
       }
     })
 
