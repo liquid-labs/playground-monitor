@@ -9,12 +9,12 @@ describe('Playground', () => {
     const playgroundAPath = fsPath.join(__dirname, 'data', 'playgroundA')
     let playground
 
-    beforeAll(async () => {
-      playground = new Playground({ root: playgroundAPath })
+    beforeAll(async() => {
+      playground = new Playground({ root : playgroundAPath })
       await playground.refreshProjects()
     })
 
-    afterAll(async () => {
+    afterAll(async() => {
       await playground.close()
     })
 
@@ -22,8 +22,8 @@ describe('Playground', () => {
 
     test('and retrieve project data', () => {
       expect(playground.getProjectData('@orgA/project-01')).toEqual({
-        pkgJSON: { name: '@orgA/project-01'},
-        projectPath: fsPath.resolve(__dirname, 'data', 'playgroundA', '@orgA', 'project-01')
+        pkgJSON     : { name : '@orgA/project-01' },
+        projectPath : fsPath.resolve(__dirname, 'data', 'playgroundA', '@orgA', 'project-01')
       })
     })
 
@@ -31,7 +31,7 @@ describe('Playground', () => {
       expect(playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
     })
 
-    test('can re-load playground', async () => {
+    test('can re-load playground', async() => {
       await playground.refreshProjects()
 
       expect(playground.listProjects()).toHaveLength(3)
@@ -43,7 +43,7 @@ describe('Playground', () => {
     const playgroundBPath = fsPath.join(__dirname, 'data', 'playgroundB')
 
     test('when a new project is added (existing dir)', async() => {
-      const playground = new Playground({ root: playgroundBPath })
+      const playground = new Playground({ root : playgroundBPath })
       try {
         await playground.refreshProjects()
 
@@ -63,8 +63,8 @@ describe('Playground', () => {
 
     test('when a new project is added (dir and package.json added)', async() => {
       const newProjPath = fsPath.join(playgroundBPath, 'new-proj')
-      
-      const playground = new Playground({ root: playgroundBPath })
+
+      const playground = new Playground({ root : playgroundBPath })
       try {
         await playground.refreshProjects()
 
@@ -80,18 +80,18 @@ describe('Playground', () => {
       }
       finally {
         await playground.close()
-        await fs.rm(newProjPath, { recursive: true })
+        await fs.rm(newProjPath, { recursive : true })
       }
     })
 
     test('when project is deleted (nested dir)', async() => {
-      const playground = new Playground({ root: playgroundBPath })
+      const playground = new Playground({ root : playgroundBPath })
       try {
         await playground.refreshProjects()
 
         const projPath = fsPath.join(playgroundBPath, '@orgA', 'project-01')
 
-        await fs.rm(projPath, { recursive: true })
+        await fs.rm(projPath, { recursive : true })
 
         await new Promise(resolve => setTimeout(resolve, 200))
 
@@ -103,13 +103,13 @@ describe('Playground', () => {
     })
 
     test('when project is deleted (just package.json)', async() => {
-      const playground = new Playground({ root: playgroundBPath })
+      const playground = new Playground({ root : playgroundBPath })
       try {
         await playground.refreshProjects()
 
         const projPath = fsPath.join(playgroundBPath, 'root-proj', 'package.json')
 
-        await fs.rm(projPath, { recursive: true })
+        await fs.rm(projPath, { recursive : true })
 
         await new Promise(resolve => setTimeout(resolve, 200))
 

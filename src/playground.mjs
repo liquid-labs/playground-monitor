@@ -1,4 +1,4 @@
-import { existsSync, statSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import * as fs from 'node:fs/promises'
 import * as fsPath from 'node:path'
 
@@ -21,7 +21,7 @@ const Playground = class {
   #root
   #watcher
 
-  constructor({ depth = 2, root = throw new Error("Must provide 'playgroundRoot' when initalizing Playground.")}) {
+  constructor({ depth = 2, root = throw new Error("Must provide 'playgroundRoot' when initalizing Playground.") }) {
     this.#root = root
     this.#depth = depth
   }
@@ -43,25 +43,25 @@ const Playground = class {
       this.#watcher.unwatch('**/*')
     }
 
-    const projectDirs = await find({ 
-      depth: this.#depth,
+    const projectDirs = await find({
+      depth    : this.#depth,
       dirsOnly : true,
-      root: this.#root, 
-      tests : [ hasPackageJSON ]
+      root     : this.#root,
+      tests    : [hasPackageJSON]
     })
 
     this.#data = {}
 
-    const loadPkg = async (pkgPath) => {
+    const loadPkg = async(pkgPath) => {
       if (pkgPath.endsWith('package.json')) {
-        const pkgContents = await fs.readFile(pkgPath, { encoding: 'utf8' })
+        const pkgContents = await fs.readFile(pkgPath, { encoding : 'utf8' })
         try {
           const pkgJSON = JSON.parse(pkgContents)
 
           const { name } = pkgJSON
           this.#data[name] = {
             pkgJSON,
-            projectPath: fsPath.dirname(pkgPath)
+            projectPath : fsPath.dirname(pkgPath)
           }
           // console.log('package ' + pkgPath + ' loaded')
         } // we may get incomplete JSON when updating as the file is written
@@ -74,7 +74,7 @@ const Playground = class {
       await loadPkg(pkgPath)
     }
 
-    const toWatch = await find({ depth: this.#depth, root: this.#root, tests: [ dirOrPackageJSON ] })
+    const toWatch = await find({ depth : this.#depth, root : this.#root, tests : [dirOrPackageJSON] })
 
     this.#watcher = chokidar.watch(toWatch)
 
@@ -84,7 +84,7 @@ const Playground = class {
       if (path.endsWith('package.json')) {
         this.#watcher.unwatch(path)
         const testPath = fsPath.dirname(path)
-        for (const [key, {projectPath}] of Object.entries(this.#data)) {
+        for (const [key, { projectPath }] of Object.entries(this.#data)) {
           if (testPath === projectPath) {
             delete this.#data[key]
             break
@@ -104,7 +104,7 @@ const Playground = class {
     })
     this.#watcher.on('unlinkDir', (path) => {
       this.#watcher.unwatch(path)
-      for (const [key, {projectPath}] of Object.entries(this.#data)) {
+      for (const [key, { projectPath }] of Object.entries(this.#data)) {
         if (path === projectPath) {
           delete this.#data[key]
           break
