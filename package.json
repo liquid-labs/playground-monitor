@@ -13,5 +13,13 @@
   "bugs": {
     "url": "https://github.com/liquid-labs/playground-monitor/issues"
   },
-  "homepage": "https://github.com/liquid-labs/playground-monitor#readme"
+  "homepage": "https://github.com/liquid-labs/playground-monitor#readme",
+  "dependencies": {
+    "@liquid-labs/find-plus": "^1.0.1"
+  },
+  "devDependencies": {
+    "@liquid-labs/catalyst-resource-babel-and-rollup": "^1.0.0-alpha.3",
+    "@liquid-labs/catalyst-resource-eslint": "^1.0.0-alpha.1",
+    "@liquid-labs/catalyst-resource-jest": "^1.0.0-alpha.3"
+  }
 }

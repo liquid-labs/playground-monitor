@@ -1,0 +1,118 @@
+/* global afterAll beforeAll describe expect test */
+import * as fs from 'node:fs/promises'
+import * as fsPath from 'node:path'
+
+import { Playground } from '../playground'
+
+describe('Playground', () => {
+  describe('loads playground', () => {
+    const playgroundAPath = fsPath.join(__dirname, 'data', 'playgroundA')
+    let playground
+
+    beforeAll(async () => {
+      playground = new Playground({ root: playgroundAPath })
+      await playground.refreshProjects()
+    })
+
+    afterAll(async () => {
+      await playground.close()
+    })
+
+    test('and list projects', () => expect(playground.listProjects()).toHaveLength(3))
+
+    test('and retrieve project data', () => {
+      expect(playground.getProjectData('@orgA/project-01')).toEqual({
+        pkgJSON: { name: '@orgA/project-01'},
+        projectPath: fsPath.resolve(__dirname, 'data', 'playgroundA', '@orgA', 'project-01')
+      })
+    })
+
+    test('loads projects regardless of location (within depth)', () => {
+      expect(playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
+    })
+  })
+
+  describe('reloads playground', () => {
+    const playgroundBPath = fsPath.join(__dirname, 'data', 'playgroundB')
+
+    test('when a new project is added (existing dir)', async() => {
+      const playground = new Playground({ root: playgroundBPath })
+      try {
+        await playground.refreshProjects()
+
+        const newProjPkgJSONPath = fsPath.join(playgroundBPath, 'empty-dir', 'package.json')
+        const newProjPkgJSON = '{ "name": "empty-dir" }'
+
+        await fs.writeFile(newProjPkgJSONPath, newProjPkgJSON)
+
+        await new Promise(resolve => setTimeout(resolve, 200))
+
+        expect(playground.getProjectData('empty-dir')).toBeTruthy()
+      }
+      finally {
+        console.log('closing...') // DEBUG
+        await playground.close()
+      }
+    })
+
+    test('when a new project is added (dir and package.json added)', async() => {
+      const playground = new Playground({ root: playgroundBPath })
+      try {
+        await playground.refreshProjects()
+
+        const newProjPath = fsPath.join(playgroundBPath, 'new-proj')
+        const newProjPkgJSONPath = fsPath.join(newProjPath, 'package.json')
+        const newProjPkgJSON = '{ "name": "new-project" }'
+
+        await fs.mkdir(newProjPath)
+        await fs.writeFile(newProjPkgJSONPath, newProjPkgJSON)
+
+        await new Promise(resolve => setTimeout(resolve, 200))
+
+        expect(playground.getProjectData('new-project')).toBeTruthy()
+      }
+      finally {
+        console.log('closing...') // DEBUG
+        await playground.close()
+      }
+    })
+
+    test('when project is deleted (nested dir)', async() => {
+      const playground = new Playground({ root: playgroundBPath })
+      try {
+        await playground.refreshProjects()
+
+        const projPath = fsPath.join(playgroundBPath, '@orgA', 'project-01')
+
+        await fs.rm(projPath, { recursive: true })
+
+        await new Promise(resolve => setTimeout(resolve, 200))
+
+        expect(playground.getProjectData('@orgA/project-01')).toBe(undefined)
+      }
+      finally {
+        console.log('closing...') // DEBUG
+        await playground.close()
+      }
+    })
+
+    test('when project is deleted (just package.json)', async() => {
+      const playground = new Playground({ root: playgroundBPath })
+      try {
+        await playground.refreshProjects()
+
+        const projPath = fsPath.join(playgroundBPath, 'root-proj', 'package.json')
+
+        await fs.rm(projPath, { recursive: true })
+
+        await new Promise(resolve => setTimeout(resolve, 200))
+
+        expect(playground.getProjectData('root-proj')).toBe(undefined)
+      }
+      finally {
+        console.log('closing...') // DEBUG
+        await playground.close()
+      }
+    })
+  })
+})
