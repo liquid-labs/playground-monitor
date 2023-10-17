@@ -14,14 +14,14 @@ const hasPackageJSON = (dirEnt) => {
   return existsSync(pkgPath)
 }
 
-const Playground = class {
+const PlaygroundMonitor = class {
   #data = {}
   #depth
   #projects
   #root
   #watcher
 
-  constructor({ depth = 2, root = throw new Error("Must provide 'playgroundRoot' when initalizing Playground.") }) {
+  constructor({ depth = 2, root = throw new Error("Must provide 'playgroundRoot' when initalizing PlaygroundMonitor.") }) {
     this.#root = root
     this.#depth = depth
   }
@@ -116,4 +116,4 @@ const Playground = class {
   }
 }
 
-export { Playground }
+export { PlaygroundMonitor }

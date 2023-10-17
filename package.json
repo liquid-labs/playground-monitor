@@ -20,7 +20,13 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": ["file", "watch", "watch file", "watcher", "watchFile"],
+  "keywords": [
+    "file",
+    "watch",
+    "watch file",
+    "watcher",
+    "watchFile"
+  ],
   "author": "Zane Rockenbaugh <zane@liquid-labs.com>",
   "license": "Apache-2.0",
   "repository": "git+ssh://git@github.com/liquid-labs/playground-monitor.git",
@@ -29,7 +35,8 @@
   },
   "homepage": "https://github.com/liquid-labs/playground-monitor#readme",
   "dependencies": {
-    "@liquid-labs/find-plus": "^1.0.1"
+    "@liquid-labs/find-plus": "^1.0.1",
+    "chokidar": "^3.5.3"
   },
   "devDependencies": {
     "@liquid-labs/catalyst-resource-babel-and-rollup": "^1.0.0-alpha.3",

@@ -2,15 +2,15 @@
 import * as fs from 'node:fs/promises'
 import * as fsPath from 'node:path'
 
-import { Playground } from '../playground'
+import { PlaygroundMonitor } from '../playground-monitor'
 
-describe('Playground', () => {
+describe('PlaygroundMonitor', () => {
   describe('loads playground', () => {
     const playgroundAPath = fsPath.join(__dirname, 'data', 'playgroundA')
     let playground
 
     beforeAll(async() => {
-      playground = new Playground({ root : playgroundAPath })
+      playground = new PlaygroundMonitor({ root : playgroundAPath })
       await playground.refreshProjects()
     })
 
@@ -43,7 +43,7 @@ describe('Playground', () => {
     const playgroundBPath = fsPath.join(__dirname, 'data', 'playgroundB')
 
     test('when a new project is added (existing dir)', async() => {
-      const playground = new Playground({ root : playgroundBPath })
+      const playground = new PlaygroundMonitor({ root : playgroundBPath })
       try {
         await playground.refreshProjects()
 
@@ -64,7 +64,7 @@ describe('Playground', () => {
     test('when a new project is added (dir and package.json added)', async() => {
       const newProjPath = fsPath.join(playgroundBPath, 'new-proj')
 
-      const playground = new Playground({ root : playgroundBPath })
+      const playground = new PlaygroundMonitor({ root : playgroundBPath })
       try {
         await playground.refreshProjects()
 
@@ -85,7 +85,7 @@ describe('Playground', () => {
     })
 
     test('when project is deleted (nested dir)', async() => {
-      const playground = new Playground({ root : playgroundBPath })
+      const playground = new PlaygroundMonitor({ root : playgroundBPath })
       try {
         await playground.refreshProjects()
 
@@ -103,7 +103,7 @@ describe('Playground', () => {
     })
 
     test('when project is deleted (just package.json)', async() => {
-      const playground = new Playground({ root : playgroundBPath })
+      const playground = new PlaygroundMonitor({ root : playgroundBPath })
       try {
         await playground.refreshProjects()
 
