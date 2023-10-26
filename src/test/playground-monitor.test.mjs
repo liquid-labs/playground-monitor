@@ -1,10 +1,14 @@
 /* global afterAll beforeAll describe expect test */
 import * as fs from 'node:fs/promises'
 import * as fsPath from 'node:path'
+import { cpus } from 'node:os'
 
 import { PlaygroundMonitor } from '../playground-monitor'
 
-const SETTLE_TIME = 200
+const cpuData = cpus()
+const longWait = cpuData.length <= 4 || cpuData[0].speed < 2000
+
+const SETTLE_TIME = 250 * (longWait === true ? 2 : 1)
 
 describe('PlaygroundMonitor', () => {
   describe('loads playground', () => {
