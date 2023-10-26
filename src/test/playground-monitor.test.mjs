@@ -33,6 +33,10 @@ describe('PlaygroundMonitor', () => {
       expect(playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
     })
 
+    test('does not pick up packages beyond depth', () => {
+      expect(playground.getProjectData('@acme/deep')).toBe(undefined)
+    })
+
     test('can re-load playground', async() => {
       await playground.refreshProjects()
 
@@ -116,6 +120,24 @@ describe('PlaygroundMonitor', () => {
         await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
 
         expect(playground.getProjectData('root-proj')).toBe(undefined)
+      }
+      finally {
+        await playground.close()
+      }
+    })
+
+    test('ignores when package.json is created outside of depth', async() => {
+      const playground = new PlaygroundMonitor({ root : playgroundBPath })
+      try {
+        await playground.refreshProjects()
+
+        const deepPkgPath = fsPath.join(playgroundBPath, 'deep-pkg', 'nested-dir', 'deep-dir-2', 'package.json')
+
+        fs.writeFile(deepPkgPath, '{ "name": "@acme/deep2" }')
+
+        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
+
+        expect(playground.getProjectData('@acme/deep2')).toBe(undefined)
       }
       finally {
         await playground.close()

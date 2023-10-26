@@ -58,6 +58,17 @@ const PlaygroundMonitor = class {
 
     const loadPkg = async(pkgPath) => {
       if (pkgPath.endsWith('package.json')) {
+        // test the depth
+        let playgroundRelPath = pkgPath.replace(this.#root, '')
+        if (playgroundRelPath.startsWith(fsPath.sep)) {
+          playgroundRelPath = playgroundRelPath.slice(1)
+        }
+        const relPathBits = playgroundRelPath.split(fsPath.sep)
+        const relDepth = relPathBits.length - 1 // because the 'package.json' doesn't count
+        if (relDepth > this.#depth) {
+          return
+        }
+
         const pkgContents = await fs.readFile(pkgPath, { encoding : 'utf8' })
         try {
           const pkgJSON = JSON.parse(pkgContents)
