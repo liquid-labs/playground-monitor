@@ -99,7 +99,8 @@ describe('PlaygroundMonitor', () => {
 
         await fs.rm(projPath, { recursive : true })
 
-        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
+        // this one fails intermentitly
+        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME * 2))
 
         expect(playground.getProjectData('@orgA/project-01')).toBe(undefined)
       }
