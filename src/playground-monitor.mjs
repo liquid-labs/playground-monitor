@@ -21,7 +21,10 @@ const PlaygroundMonitor = class {
   #root
   #watcher
 
-  constructor({ depth = 2, root = throw new Error("Must provide 'playgroundRoot' when initalizing PlaygroundMonitor.") }) {
+  constructor({
+    depth = 2,
+    root = throw new Error("Must provide 'playgroundRoot' when initalizing PlaygroundMonitor.")
+  }) {
     this.#root = root
     this.#depth = depth
   }
@@ -42,7 +45,7 @@ const PlaygroundMonitor = class {
     return this.#watcher.getWatched()
   }
 
-  async refreshProjects() {
+  async refreshProjects({ postSettle = 500 } = {}) {
     if (this.#watcher) {
       await this.#watcher.close()
     }
@@ -91,7 +94,7 @@ const PlaygroundMonitor = class {
 
     const toWatch = await find({ depth : this.#depth, root : this.#root, tests : [dirOrPackageJSON] })
 
-    this.#watcher = chokidar.watch(toWatch, { ignoreInitial : true })
+    this.#watcher = chokidar.watch(toWatch/* , { usePolling : true } */)
       .on('add', loadPkg)
       .on('change', loadPkg)
       .on('unlink', (path) => {
@@ -115,6 +118,8 @@ const PlaygroundMonitor = class {
           testPath = fsPath.dirname(testPath)
         }
       })
+
+    await new Promise(resolve => setTimeout(resolve, postSettle))
   }
 }
 
