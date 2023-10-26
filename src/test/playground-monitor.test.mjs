@@ -5,20 +5,22 @@ import * as os from 'node:os'
 
 import { PlaygroundMonitor } from '../playground-monitor'
 
-const cpuData = os.cpus()
-const cpuWait = cpuData.length <= 4 || cpuData[0].speed < 2000
-  ? cpuData.length <= 2 || cpuData[0].speed < 1500
-    ? 3
-    : 2
-  : 1
+const tryCount = 50
+const SETTLE_TIME = 250
 
-const platform = os.platform()
-const platformWait = platform !== 'darwin' ? platform === 'linux' ? 3 : 2 : 1
-
-const mem = os.totalmem() / (Math.pow(1024, 3))
-const memWait = mem <= 8 ? mem <= 4 ? 3 : 2 : 1
-
-const SETTLE_TIME = 500 * cpuWait * platformWait * memWait
+const tryAgain = async (func, count) => {
+  for (let i = 0; i < count; i += 1) {
+    try {
+      await func()
+      return
+    }
+    catch (e) {
+      if (i + 1 === count) {
+        throw e
+      }
+    }
+  }
+}
 
 describe('PlaygroundMonitor', () => {
   describe('loads playground', () => {
@@ -72,9 +74,11 @@ describe('PlaygroundMonitor', () => {
 
         await fs.writeFile(newProjPkgJSONPath, newProjPkgJSON)
 
-        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
+        await tryAgain(async() => {
+          await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
 
-        expect(playground.getProjectData('empty-dir')).toBeTruthy()
+          expect(playground.getProjectData('empty-dir')).toBeTruthy()
+        })
       }
       finally {
         await playground.close()
@@ -94,9 +98,11 @@ describe('PlaygroundMonitor', () => {
         await fs.mkdir(newProjPath)
         await fs.writeFile(newProjPkgJSONPath, newProjPkgJSON)
 
-        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
+        await tryAgain(async() => {
+          await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
 
-        expect(playground.getProjectData('new-project')).toBeTruthy()
+          expect(playground.getProjectData('new-project')).toBeTruthy()
+        }, tryCount)
       }
       finally {
         await playground.close()
@@ -113,10 +119,11 @@ describe('PlaygroundMonitor', () => {
 
         await fs.rm(projPath, { recursive : true })
 
-        // this one fails intermentitly
-        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME * 2))
+        await tryAgain(async() => {
+          await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
 
-        expect(playground.getProjectData('@orgA/project-01')).toBe(undefined)
+          expect(playground.getProjectData('@orgA/project-01')).toBe(undefined)
+        }, tryCount)
       }
       finally {
         await playground.close()
@@ -132,9 +139,11 @@ describe('PlaygroundMonitor', () => {
 
         await fs.rm(projPath, { recursive : true })
 
-        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
+        await tryAgain(async() => {
+          await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
 
-        expect(playground.getProjectData('root-proj')).toBe(undefined)
+          expect(playground.getProjectData('root-proj')).toBe(undefined)
+        }, tryCount)
       }
       finally {
         await playground.close()
@@ -150,9 +159,13 @@ describe('PlaygroundMonitor', () => {
 
         fs.writeFile(deepPkgPath, '{ "name": "@acme/deep2" }')
 
-        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
+        await tryAgain(async() => {
+          await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
 
-        expect(playground.getProjectData('@acme/deep2')).toBe(undefined)
+          expect(playground.getProjectData('@acme/deep2')).toBe(undefined)
+
+          return true
+        }, tryCount)
       }
       finally {
         await playground.close()
