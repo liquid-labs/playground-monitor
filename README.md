@@ -22,8 +22,6 @@ const playground = new PlaygroundMonitor({ root: playgroundPath})
 try {
   playground.refreshProjects() // must be called to initalize the PlaygroundMonitor
 
-  console.log(playground.listProjects())
-
   const { pkgJSON, projectPath } = playground.getProjectData('@liquid-labs/playground-monitor')
 }
 finally {
@@ -33,7 +31,7 @@ finally {
 
 ## Reference
 
-___`PlaygroundMonitor.constructor({ /*int:*/ depth = 2, /*path string:*/ root})`___: creates a new `PlaygroundMonitor` watching the playground at `root` (a path string) which will look for projects (directories with `package.json` files) `depth` (an integer, default 2) levels down.
+___`PlaygroundMonitor.constructor({ /*int:*/ depth = 2, /*path string:*/ root })`___: creates a new `PlaygroundMonitor` watching the playground at `root` (a path string) which will look for projects (directories with `package.json` files) `depth` (an integer, default 2) levels down.
 
 ___`PlaygroundMonitor.close()`___: stops the underlying watchers and frees resources. The node process will hang unlesss the `Playground` instance is closed.
 
