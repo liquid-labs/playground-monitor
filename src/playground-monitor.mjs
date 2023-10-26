@@ -21,7 +21,10 @@ const PlaygroundMonitor = class {
   #root
   #watcher
 
-  constructor({ depth = 2, root = throw new Error("Must provide 'playgroundRoot' when initalizing PlaygroundMonitor.") }) {
+  constructor({
+    depth = 2,
+    root = throw new Error("Must provide 'playgroundRoot' when initalizing PlaygroundMonitor.")
+  }) {
     this.#root = root
     this.#depth = depth
   }
@@ -42,7 +45,7 @@ const PlaygroundMonitor = class {
     return this.#watcher.getWatched()
   }
 
-  async refreshProjects() {
+  async refreshProjects({ postSettle = 500 } = {}) {
     if (this.#watcher) {
       await this.#watcher.close()
     }
@@ -58,6 +61,17 @@ const PlaygroundMonitor = class {
 
     const loadPkg = async(pkgPath) => {
       if (pkgPath.endsWith('package.json')) {
+        // test the depth
+        let playgroundRelPath = pkgPath.replace(this.#root, '')
+        if (playgroundRelPath.startsWith(fsPath.sep)) {
+          playgroundRelPath = playgroundRelPath.slice(1)
+        }
+        const relPathBits = playgroundRelPath.split(fsPath.sep)
+        const relDepth = relPathBits.length - 1 // because the 'package.json' doesn't count
+        if (relDepth > this.#depth) {
+          return
+        }
+
         const pkgContents = await fs.readFile(pkgPath, { encoding : 'utf8' })
         try {
           const pkgJSON = JSON.parse(pkgContents)
@@ -80,37 +94,32 @@ const PlaygroundMonitor = class {
 
     const toWatch = await find({ depth : this.#depth, root : this.#root, tests : [dirOrPackageJSON] })
 
-    const readyPromise = new Promise((resolve) => {
-      this.#watcher = chokidar.watch(toWatch, { ignoreInitial : true })
-        .on('ready', () => {
-          resolve()
-        })
-        .on('add', loadPkg)
-        .on('change', loadPkg)
-        .on('unlink', (path) => {
-          if (path.endsWith('package.json')) {
-            this.#watcher.unwatch(path)
-            const testPath = fsPath.dirname(path)
-            for (const [key, { projectPath }] of Object.entries(this.#data)) {
-              if (testPath === projectPath) {
-                delete this.#data[key]
-                break
-              }
+    this.#watcher = chokidar.watch(toWatch/* , { usePolling : true } */)
+      .on('add', loadPkg)
+      .on('change', loadPkg)
+      .on('unlink', (path) => {
+        if (path.endsWith('package.json')) {
+          this.#watcher.unwatch(path)
+          const testPath = fsPath.dirname(path)
+          for (const [key, { projectPath }] of Object.entries(this.#data)) {
+            if (testPath === projectPath) {
+              delete this.#data[key]
+              break
             }
           }
-        })
-        .on('addDir', (path) => { // only watch dirs within 'depth' of #root
-          let testPath = path
-          for (let depth = 0; depth <= this.#depth; depth += 1) {
-            if (testPath === this.#root) {
-              this.#watcher.add(path)
-            }
-            testPath = fsPath.dirname(testPath)
+        }
+      })
+      .on('addDir', (path) => { // only watch dirs within 'depth' of #root
+        let testPath = path
+        for (let depth = 0; depth <= this.#depth; depth += 1) {
+          if (testPath === this.#root) {
+            this.#watcher.add(path)
           }
-        })
-    })
+          testPath = fsPath.dirname(testPath)
+        }
+      })
 
-    return readyPromise
+    await new Promise(resolve => setTimeout(resolve, postSettle))
   }
 }
 

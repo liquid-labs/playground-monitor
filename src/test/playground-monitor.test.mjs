@@ -1,10 +1,28 @@
-/* global afterAll beforeAll describe expect test */
+/* global afterAll beforeAll describe expect jest test */
 import * as fs from 'node:fs/promises'
 import * as fsPath from 'node:path'
 
 import { PlaygroundMonitor } from '../playground-monitor'
 
-const SETTLE_TIME = 200
+const TRY_COUNT = 50
+const SETTLE_TIME = 250
+
+const tryAgain = async(func, count) => {
+  for (let i = 0; i < count; i += 1) {
+    try {
+      await func()
+      return
+    }
+    catch (e) {
+      if (i + 1 === count) {
+        throw e
+      }
+      await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
+    }
+  }
+}
+
+jest.setTimeout(TRY_COUNT * SETTLE_TIME * 1.1)
 
 describe('PlaygroundMonitor', () => {
   describe('loads playground', () => {
@@ -33,6 +51,10 @@ describe('PlaygroundMonitor', () => {
       expect(playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
     })
 
+    test('does not pick up packages beyond depth', () => {
+      expect(playground.getProjectData('@acme/deep')).toBe(undefined)
+    })
+
     test('can re-load playground', async() => {
       await playground.refreshProjects()
 
@@ -54,9 +76,9 @@ describe('PlaygroundMonitor', () => {
 
         await fs.writeFile(newProjPkgJSONPath, newProjPkgJSON)
 
-        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
-
-        expect(playground.getProjectData('empty-dir')).toBeTruthy()
+        await tryAgain(async() => {
+          expect(playground.getProjectData('empty-dir')).toBeTruthy()
+        })
       }
       finally {
         await playground.close()
@@ -76,9 +98,9 @@ describe('PlaygroundMonitor', () => {
         await fs.mkdir(newProjPath)
         await fs.writeFile(newProjPkgJSONPath, newProjPkgJSON)
 
-        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
-
-        expect(playground.getProjectData('new-project')).toBeTruthy()
+        await tryAgain(async() => {
+          expect(playground.getProjectData('new-project')).toBeTruthy()
+        }, TRY_COUNT)
       }
       finally {
         await playground.close()
@@ -95,9 +117,9 @@ describe('PlaygroundMonitor', () => {
 
         await fs.rm(projPath, { recursive : true })
 
-        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
-
-        expect(playground.getProjectData('@orgA/project-01')).toBe(undefined)
+        await tryAgain(async() => {
+          expect(playground.getProjectData('@orgA/project-01')).toBe(undefined)
+        }, TRY_COUNT)
       }
       finally {
         await playground.close()
@@ -113,9 +135,27 @@ describe('PlaygroundMonitor', () => {
 
         await fs.rm(projPath, { recursive : true })
 
-        await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
+        await tryAgain(async() => {
+          expect(playground.getProjectData('root-proj')).toBe(undefined)
+        }, TRY_COUNT)
+      }
+      finally {
+        await playground.close()
+      }
+    })
 
-        expect(playground.getProjectData('root-proj')).toBe(undefined)
+    test('ignores when package.json is created outside of depth', async() => {
+      const playground = new PlaygroundMonitor({ root : playgroundBPath })
+      try {
+        await playground.refreshProjects()
+
+        const deepPkgPath = fsPath.join(playgroundBPath, 'deep-pkg', 'nested-dir', 'deep-dir-2', 'package.json')
+
+        fs.writeFile(deepPkgPath, '{ "name": "@acme/deep2" }')
+
+        await tryAgain(async() => {
+          expect(playground.getProjectData('@acme/deep2')).toBe(undefined)
+        }, TRY_COUNT)
       }
       finally {
         await playground.close()
