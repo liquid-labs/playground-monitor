@@ -35,8 +35,6 @@ const PlaygroundMonitor = class {
   }
 
   getProjectData(projectName) {
-    // console.log('PlaygroundMonitor.#data:', this.#data) // DEBUG    
-    console.log('projectName:', projectName, this.#data[projectName]) // DEBUG
     return structuredClone(this.#data[projectName])
   }
 
