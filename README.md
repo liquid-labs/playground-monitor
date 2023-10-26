@@ -20,7 +20,7 @@ import { PlaygroundMonitor } from '@liquid-labs/playground-monitor' // ESM
 const playgroundPath = fsPath.join(process.env.HOME, 'playground')
 const playground = new PlaygroundMonitor({ root: playgroundPath})
 try {
-  playground.refreshProjects() // must be called to initalize the PlaygroundMonitor
+  await playground.refreshProjects() // must be called to initalize the PlaygroundMonitor
 
   const { pkgJSON, projectPath } = playground.getProjectData('@liquid-labs/playground-monitor')
 }
@@ -31,14 +31,18 @@ finally {
 
 ## Reference
 
-___`PlaygroundMonitor.constructor({ /*int:*/ depth = 2, /*path string:*/ root })`___: creates a new `PlaygroundMonitor` watching the playground at `root` (a path string) which will look for projects (directories with `package.json` files) `depth` (an integer, default 2) levels down.
-
-___`PlaygroundMonitor.close()`___: stops the underlying watchers and frees resources. The node process will hang unlesss the `Playground` instance is closed.
-
-___`PlaygroundMonitor.getProjectData(/*string:*/ projectName)`___: retrieves the `{ pkgJSON, /*and*/ projectPath }` for the project where `pkgJSON` is the contents of the projects `package.json` file as a JSON data object aand `projectPath` is the absolute path to the project root (the directory where `package.json` lives).
-
-___`getWatched()`___: Returns an object representing all the paths on the file system being watched. The object's keys are all the directories (using absolute paths unless the cwd option was used), and the values are arrays of the names of the items contained in each directory.
-
-___`PlaygroundMonitor.listProjects()`___: lists the known project names alphabetically as an array of strings.
-
-___`PlaygroundMonitor.refreshProjects()`___: used to initialize the playground tracking
+- `PlaygroundMonitor.constructor({ depth = 2, root })`\
+  Creates a new `PlaygroundMonitor` watching the playground at `root` which will look for projects (directories with `package.json` files) `depth` levels down.
+  - `depth`: _(opt, int, default: 2)_ how many levels of directories under root to watch
+  - `root`: _(req, string)_ the path to the playground root
+- `PlaygroundMonitor.close()`:\
+  Stops the underlying watchers and frees resources. The node process will hang unlesss the `Playground` instance is closed.
+- `PlaygroundMonitor.getProjectData(projectName)`\
+  Retrieves the `{ pkgJSON, /*and*/ projectPath }` for the project where `pkgJSON` is the contents of the projects `package.json` file as a JSON data object and `projectPath` is the absolute path to the project root (the directory where `package.json` lives).
+  - `projectName`: _(req, string)_ the name (from `package.json`) of the project/package.
+- `getWatched()`\
+  Returns an object representing all the paths on the file system being watched. The object's keys are all the directories (using absolute paths unless the cwd option was used), and the values are arrays of the names of the items contained in each directory.
+- `PlaygroundMonitor.listProjects()`\
+  Lists the known project names alphabetically as an array of strings.
+- `async PlaygroundMonitor.refreshProjects()`\
+  Asynchronously initializes the playground. This method _must_ be called for the `PlaygroundMonitor` to function.
