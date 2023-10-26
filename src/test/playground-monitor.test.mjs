@@ -7,9 +7,18 @@ import { PlaygroundMonitor } from '../playground-monitor'
 
 const cpuData = os.cpus()
 const cpuWait = cpuData.length <= 4 || cpuData[0].speed < 2000
-const platformWait = os.platform() !== 'darwin'
+  ? cpuData.length <= 2 || cpuData[0].speed < 1500
+    ? 3
+    : 2
+  : 1
 
-const SETTLE_TIME = 250 * (cpuWait === true ? 2 : 1) * (platformWait === true ? 2 : 1)
+const platform = os.platform()
+const platformWait = platform !== 'darwin' ? platform === 'linux' ? 3 : 2 : 1
+
+const mem = os.totalmem() / (Math.pow(1024, 3))
+const memWait = mem <= 8 ? mem <= 4 ? 3 : 2 : 1
+
+const SETTLE_TIME = 500 * cpuWait * platformWait * memWait
 
 describe('PlaygroundMonitor', () => {
   describe('loads playground', () => {
