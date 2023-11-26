@@ -4,26 +4,6 @@ import * as fsPath from 'node:path'
 
 import { PlaygroundMonitor } from '../playground-monitor'
 
-const TRY_COUNT = 50
-const SETTLE_TIME = 250
-
-const tryAgain = async(func, count) => {
-  for (let i = 0; i < count; i += 1) {
-    try {
-      await func()
-      return
-    }
-    catch (e) {
-      if (i + 1 === count) {
-        throw e
-      }
-      await new Promise(resolve => setTimeout(resolve, SETTLE_TIME))
-    }
-  }
-}
-
-jest.setTimeout(TRY_COUNT * SETTLE_TIME * 1.1)
-
 describe('PlaygroundMonitor', () => {
   describe('loads playground', () => {
     const playgroundAPath = fsPath.join(__dirname, 'data', 'playgroundA')
@@ -34,32 +14,24 @@ describe('PlaygroundMonitor', () => {
       await playground.refreshProjects()
     })
 
-    afterAll(async() => {
-      await playground.close()
-    })
+    test('and list projects', async() => expect(await playground.listProjects()).toHaveLength(3))
 
-    test('and list projects', () => expect(playground.listProjects()).toHaveLength(3))
-
-    test('and retrieve project data', () => {
-      expect(playground.getProjectData('@orgA/project-01')).toEqual({
-        pkgJSON     : { name : '@orgA/project-01' },
+    test('and retrieve project data', async() => {
+      expect(await playground.getProjectData('@orgA/project-01')).toEqual({
+        packageJSON     : { name : '@orgA/project-01' },
         projectPath : fsPath.resolve(__dirname, 'data', 'playgroundA', '@orgA', 'project-01')
       })
     })
 
-    test('loads projects regardless of location (within depth)', () => {
-      expect(playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
-    })
-
-    test('does not pick up packages beyond depth', () => {
-      expect(playground.getProjectData('@acme/deep')).toBe(undefined)
+    test('loads projects regardless of location', async() => {
+      expect(await playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
     })
 
     test('can re-load playground', async() => {
       await playground.refreshProjects()
 
-      expect(playground.listProjects()).toHaveLength(3)
-      expect(playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
+      expect(await playground.listProjects()).toHaveLength(3)
+      expect(await playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
     })
   })
 
@@ -68,21 +40,15 @@ describe('PlaygroundMonitor', () => {
 
     test('when a new project is added (existing dir)', async() => {
       const playground = new PlaygroundMonitor({ root : playgroundBPath })
-      try {
-        await playground.refreshProjects()
 
-        const newProjPkgJSONPath = fsPath.join(playgroundBPath, 'empty-dir', 'package.json')
-        const newProjPkgJSON = '{ "name": "empty-dir" }'
+      await playground.refreshProjects()
 
-        await fs.writeFile(newProjPkgJSONPath, newProjPkgJSON)
+      const newProjPkgJSONPath = fsPath.join(playgroundBPath, 'empty-dir', 'package.json')
+      const newProjPkgJSON = '{ "name": "empty-dir" }'
 
-        await tryAgain(async() => {
-          expect(playground.getProjectData('empty-dir')).toBeTruthy()
-        })
-      }
-      finally {
-        await playground.close()
-      }
+      await fs.writeFile(newProjPkgJSONPath, newProjPkgJSON)
+
+      expect(await playground.getProjectData('empty-dir')).toBeTruthy()
     })
 
     test('when a new project is added (dir and package.json added)', async() => {
@@ -98,68 +64,33 @@ describe('PlaygroundMonitor', () => {
         await fs.mkdir(newProjPath)
         await fs.writeFile(newProjPkgJSONPath, newProjPkgJSON)
 
-        await tryAgain(async() => {
-          expect(playground.getProjectData('new-project')).toBeTruthy()
-        }, TRY_COUNT)
+        expect(await playground.getProjectData('new-project')).toBeTruthy()
       }
       finally {
-        await playground.close()
         await fs.rm(newProjPath, { recursive : true })
       }
     })
 
     test('when project is deleted (nested dir)', async() => {
       const playground = new PlaygroundMonitor({ root : playgroundBPath })
-      try {
-        await playground.refreshProjects()
+      await playground.refreshProjects()
 
-        const projPath = fsPath.join(playgroundBPath, '@orgA', 'project-01')
+      const projPath = fsPath.join(playgroundBPath, '@orgA', 'project-01')
 
-        await fs.rm(projPath, { recursive : true })
+      await fs.rm(projPath, { recursive : true })
 
-        await tryAgain(async() => {
-          expect(playground.getProjectData('@orgA/project-01')).toBe(undefined)
-        }, TRY_COUNT)
-      }
-      finally {
-        await playground.close()
-      }
+      expect(await playground.getProjectData('@orgA/project-01')).toBe(undefined)
     })
 
     test('when project is deleted (just package.json)', async() => {
       const playground = new PlaygroundMonitor({ root : playgroundBPath })
-      try {
-        await playground.refreshProjects()
+      await playground.refreshProjects()
 
-        const projPath = fsPath.join(playgroundBPath, 'root-proj', 'package.json')
+      const projPath = fsPath.join(playgroundBPath, 'root-proj', 'package.json')
 
-        await fs.rm(projPath, { recursive : true })
+      await fs.rm(projPath, { recursive : true })
 
-        await tryAgain(async() => {
-          expect(playground.getProjectData('root-proj')).toBe(undefined)
-        }, TRY_COUNT)
-      }
-      finally {
-        await playground.close()
-      }
-    })
-
-    test('ignores when package.json is created outside of depth', async() => {
-      const playground = new PlaygroundMonitor({ root : playgroundBPath })
-      try {
-        await playground.refreshProjects()
-
-        const deepPkgPath = fsPath.join(playgroundBPath, 'deep-pkg', 'nested-dir', 'deep-dir-2', 'package.json')
-
-        fs.writeFile(deepPkgPath, '{ "name": "@acme/deep2" }')
-
-        await tryAgain(async() => {
-          expect(playground.getProjectData('@acme/deep2')).toBe(undefined)
-        }, TRY_COUNT)
-      }
-      finally {
-        await playground.close()
-      }
+      expect(await playground.getProjectData('root-proj')).toBe(undefined)
     })
   })
 })
