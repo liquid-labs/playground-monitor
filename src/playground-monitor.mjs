@@ -24,6 +24,12 @@ const PlaygroundMonitor = class {
     return structuredClone(this.#data[projectName])
   }
 
+  async getProjectsData() {
+    await this.#refreshProjects()
+
+    return structuredClone(this.#data)
+  }
+
   async #loadContainer(containerPath) {
     const subDirs = await find({
       depth       : 1,
