@@ -8,7 +8,7 @@ const PlaygroundMonitor = class {
   #data
   #root
 
-  constructor({ root = throw new Error("Must provide 'playgroundRoot' when initalizing PlaygroundMonitor.") }) {
+  constructor({ root = throw new Error("Must provide 'playgroundRoot' when initalizing PlaygroundMonitor.") } = {}) {
     this.#root = root
   }
 
@@ -47,34 +47,18 @@ const PlaygroundMonitor = class {
   }
 
   async #loadPackage(packagePath) {
-    try {
-      const packageContents = await fs.readFile(packagePath, { encoding : 'utf8' })
-    
-      const packageJSON = JSON.parse(packageContents)
+    const packageContents = await fs.readFile(packagePath, { encoding : 'utf8' })
+  
+    const packageJSON = JSON.parse(packageContents)
 
-      const { name } = packageJSON
-      const data = {
-        packageJSON,
-        projectPath : fsPath.dirname(packagePath)
-      }
-      this.#data[name] = data
-
-      return data
-    } // we may get incomplete JSON when updating as the file is written
-    catch (e) { 
-      if (e.code === 'ENONT') {
-        for (const [name, data] of Object.entries(this.#data)) {
-          if (data.packagePath === packagePath) {
-            delete this.#data[name]
-          }
-        }
-
-        return undefined
-      }
-      else {
-        throw e
-      }
+    const { name } = packageJSON
+    const data = {
+      packageJSON,
+      projectPath : fsPath.dirname(packagePath)
     }
+    this.#data[name] = data
+
+    return data
   }
 
   async #refreshProjects() {

@@ -5,6 +5,9 @@ import * as fsPath from 'node:path'
 import { PlaygroundMonitor } from '../playground-monitor'
 
 describe('PlaygroundMonitor', () => {
+  test('raises exception when no root provided', () =>
+    expect(() => new PlaygroundMonitor()).toThrow(/Must provide 'playgroundRoot'/))
+
   describe('loads playground', () => {
     const playgroundAPath = fsPath.join(__dirname, 'data', 'playgroundA')
     let playground
