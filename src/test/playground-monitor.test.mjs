@@ -30,6 +30,13 @@ describe('PlaygroundMonitor', () => {
       expect(await playground.listProjects()).toHaveLength(3)
       expect(await playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
     })
+
+    test('loads data when root is a package', async() => {
+      const playgroundPath = fsPath.join(playgroundAPath, 'root-proj')
+      const playground = new PlaygroundMonitor({ root : playgroundPath })
+
+      expect(await playground.getProjectData('root-project')).toBeTruthy()
+    })
   })
 
   describe('tracks changes', () => {
