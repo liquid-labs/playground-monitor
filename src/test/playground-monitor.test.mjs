@@ -1,4 +1,4 @@
-/* global afterAll beforeAll describe expect jest test */
+/* global beforeAll describe expect test */
 import * as fs from 'node:fs/promises'
 import * as fsPath from 'node:path'
 
@@ -20,7 +20,7 @@ describe('PlaygroundMonitor', () => {
 
     test('and retrieve project data', async() => {
       expect(await playground.getProjectData('@orgA/project-01')).toEqual({
-        packageJSON     : { name : '@orgA/project-01' },
+        packageJSON : { name : '@orgA/project-01' },
         projectPath : fsPath.resolve(__dirname, 'data', 'playgroundA', '@orgA', 'project-01')
       })
     })

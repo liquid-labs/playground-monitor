@@ -26,10 +26,10 @@ const PlaygroundMonitor = class {
 
   async #loadContainer(containerPath) {
     const subDirs = await find({
-      depth    : 1,
-      onlyDirs : true,
-      root     : containerPath,
-      excludeRoot: true
+      depth       : 1,
+      onlyDirs    : true,
+      root        : containerPath,
+      excludeRoot : true
     })
 
     const ops = []
@@ -48,7 +48,7 @@ const PlaygroundMonitor = class {
 
   async #loadPackage(packagePath) {
     const packageContents = await fs.readFile(packagePath, { encoding : 'utf8' })
-  
+
     const packageJSON = JSON.parse(packageContents)
 
     const { name } = packageJSON
