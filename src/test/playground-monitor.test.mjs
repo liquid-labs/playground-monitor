@@ -11,7 +11,7 @@ describe('PlaygroundMonitor', () => {
     expect(() => new PlaygroundMonitor()).toThrow(/Must provide 'playgroundRoot'/))
 
   test("'getProjectsData' returns all data", async() => {
-    expect(await (new PlaygroundMonitor({ root: playgroundAPath })).getProjectsData()).toEqual({"@orgA/project-01": {"packageJSON": {"name": "@orgA/project-01"}, "projectPath": "/Users/zane/playground/liquid-labs/playground-monitor/test-staging/test/data/playgroundA/@orgA/project-01"}, "@orgA/project-02": {"packageJSON": {"name": "@orgA/project-02"}, "projectPath": "/Users/zane/playground/liquid-labs/playground-monitor/test-staging/test/data/playgroundA/misfiled-project"}, "root-project": {"packageJSON": {"name": "root-project"}, "projectPath": "/Users/zane/playground/liquid-labs/playground-monitor/test-staging/test/data/playgroundA/root-proj"}})
+    expect(await (new PlaygroundMonitor({ root : playgroundAPath })).getProjectsData()).toEqual({ '@orgA/project-01' : { packageJSON : { name : '@orgA/project-01' }, projectPath : '/Users/zane/playground/liquid-labs/playground-monitor/test-staging/test/data/playgroundA/@orgA/project-01' }, '@orgA/project-02' : { packageJSON : { name : '@orgA/project-02' }, projectPath : '/Users/zane/playground/liquid-labs/playground-monitor/test-staging/test/data/playgroundA/misfiled-project' }, 'root-project' : { packageJSON : { name : 'root-project' }, projectPath : '/Users/zane/playground/liquid-labs/playground-monitor/test-staging/test/data/playgroundA/root-proj' } })
   })
 
   describe('loads playground', () => {
