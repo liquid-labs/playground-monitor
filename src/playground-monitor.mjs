@@ -5,7 +5,6 @@ import * as fsPath from 'node:path'
 import { find } from 'find-plus'
 
 const PlaygroundMonitor = class {
-  #containers
   #data
   #root
 
@@ -26,12 +25,10 @@ const PlaygroundMonitor = class {
   }
 
   async refreshProjects() {
-    this.#containers = {}
     this.#data = {}
 
     const rootPkg = fsPath.join(this.#root, 'package.json')
     if (existsSync(rootPkg)) {
-      this.#containers = []
       await this.#loadPackage(rootPkg)
 
       return
@@ -41,9 +38,6 @@ const PlaygroundMonitor = class {
   }
 
   async #loadContainer(containerPath) {
-    const containerStat = await fs.stat(containerPath)
-    this.#containers[containerPath] = containerStat
-
     const subDirs = await find({
       depth    : 1,
       onlyDirs : true,
