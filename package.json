@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/liquid-labs/playground-monitor#readme",
   "dependencies": {
-    "find-plus": "file:.yalc/find-plus"
+    "find-plus": "^1.1.1"
   },
   "devDependencies": {
     "@liquid-labs/catalyst-resource-babel-and-rollup": "^1.0.0-alpha.3",
