@@ -2,124 +2,76 @@ import { existsSync } from 'node:fs'
 import * as fs from 'node:fs/promises'
 import * as fsPath from 'node:path'
 
-import chokidar from 'chokidar'
-
-import { find } from '@liquid-labs/find-plus'
-
-const dirOrPackageJSON = (dirEnt) => dirEnt.isDirectory() || dirEnt.name === 'package.json'
-
-const hasPackageJSON = (dirEnt) => {
-  // because we're only looking at directories, we know dirEnt describes a directory
-  const pkgPath = fsPath.join(dirEnt.path, dirEnt.name, 'package.json')
-  return existsSync(pkgPath)
-}
+import { find } from 'find-plus'
 
 const PlaygroundMonitor = class {
-  #data = {}
-  #depth
-  #projects
+  #data
   #root
-  #watcher
 
-  constructor({
-    depth = 2,
-    root = throw new Error("Must provide 'playgroundRoot' when initalizing PlaygroundMonitor.")
-  }) {
+  constructor({ root = throw new Error("Must provide 'playgroundRoot' when initalizing PlaygroundMonitor.") } = {}) {
     this.#root = root
-    this.#depth = depth
   }
 
-  async close() {
-    await this.#watcher?.close()
-  }
+  async listProjects(sortFunc) {
+    await this.#refreshProjects()
 
-  listProjects(sortFunc) {
     return Object.keys(this.#data).sort(sortFunc)
   }
 
-  getProjectData(projectName) {
+  async getProjectData(projectName) {
+    await this.#refreshProjects()
+
     return structuredClone(this.#data[projectName])
   }
 
-  getWatched() {
-    return this.#watcher.getWatched()
-  }
-
-  async refreshProjects({ postSettle = 500 } = {}) {
-    if (this.#watcher) {
-      await this.#watcher.close()
-    }
-
-    const projectDirs = await find({
-      depth    : this.#depth,
-      dirsOnly : true,
-      root     : this.#root,
-      tests    : [hasPackageJSON]
+  async #loadContainer(containerPath) {
+    const subDirs = await find({
+      depth       : 1,
+      onlyDirs    : true,
+      root        : containerPath,
+      excludeRoot : true
     })
 
-    this.#data = {}
-
-    const loadPkg = async(pkgPath) => {
-      if (pkgPath.endsWith('package.json')) {
-        // test the depth
-        let playgroundRelPath = pkgPath.replace(this.#root, '')
-        if (playgroundRelPath.startsWith(fsPath.sep)) {
-          playgroundRelPath = playgroundRelPath.slice(1)
-        }
-        const relPathBits = playgroundRelPath.split(fsPath.sep)
-        const relDepth = relPathBits.length - 1 // because the 'package.json' doesn't count
-        if (relDepth > this.#depth) {
-          return
-        }
-
-        const pkgContents = await fs.readFile(pkgPath, { encoding : 'utf8' })
-        try {
-          const pkgJSON = JSON.parse(pkgContents)
-
-          const { name } = pkgJSON
-          this.#data[name] = {
-            pkgJSON,
-            projectPath : fsPath.dirname(pkgPath)
-          }
-          // console.log('package ' + pkgPath + ' loaded')
-        } // we may get incomplete JSON when updating as the file is written
-        catch (e) { console.err(e.stack) }
+    const ops = []
+    for (const subDir of subDirs) {
+      const packagePath = fsPath.join(subDir, 'package.json')
+      if (existsSync(packagePath)) {
+        ops.push(this.#loadPackage(packagePath))
+      }
+      else {
+        ops.push(this.#loadContainer(subDir))
       }
     }
 
-    for (const projectPath of projectDirs) {
-      const pkgPath = fsPath.join(projectPath, 'package.json')
-      await loadPkg(pkgPath)
+    await Promise.all(ops)
+  }
+
+  async #loadPackage(packagePath) {
+    const packageContents = await fs.readFile(packagePath, { encoding : 'utf8' })
+
+    const packageJSON = JSON.parse(packageContents)
+
+    const { name } = packageJSON
+    const data = {
+      packageJSON,
+      projectPath : fsPath.dirname(packagePath)
     }
+    this.#data[name] = data
 
-    const toWatch = await find({ depth : this.#depth, root : this.#root, tests : [dirOrPackageJSON] })
+    return data
+  }
 
-    this.#watcher = chokidar.watch(toWatch/* , { usePolling : true } */)
-      .on('add', loadPkg)
-      .on('change', loadPkg)
-      .on('unlink', (path) => {
-        if (path.endsWith('package.json')) {
-          this.#watcher.unwatch(path)
-          const testPath = fsPath.dirname(path)
-          for (const [key, { projectPath }] of Object.entries(this.#data)) {
-            if (testPath === projectPath) {
-              delete this.#data[key]
-              break
-            }
-          }
-        }
-      })
-      .on('addDir', (path) => { // only watch dirs within 'depth' of #root
-        let testPath = path
-        for (let depth = 0; depth <= this.#depth; depth += 1) {
-          if (testPath === this.#root) {
-            this.#watcher.add(path)
-          }
-          testPath = fsPath.dirname(testPath)
-        }
-      })
+  async #refreshProjects() {
+    this.#data = {}
 
-    await new Promise(resolve => setTimeout(resolve, postSettle))
+    const rootPkg = fsPath.join(this.#root, 'package.json')
+    if (existsSync(rootPkg)) {
+      await this.#loadPackage(rootPkg)
+
+      return
+    }
+    // else
+    await this.#loadContainer(this.#root)
   }
 }
 
