@@ -24,19 +24,6 @@ const PlaygroundMonitor = class {
     return structuredClone(this.#data[projectName])
   }
 
-  async #refreshProjects() {
-    this.#data = {}
-
-    const rootPkg = fsPath.join(this.#root, 'package.json')
-    if (existsSync(rootPkg)) {
-      await this.#loadPackage(rootPkg)
-
-      return
-    }
-    // else
-    await this.#loadContainer(this.#root)
-  }
-
   async #loadContainer(containerPath) {
     const subDirs = await find({
       depth    : 1,
@@ -88,6 +75,19 @@ const PlaygroundMonitor = class {
         throw e
       }
     }
+  }
+
+  async #refreshProjects() {
+    this.#data = {}
+
+    const rootPkg = fsPath.join(this.#root, 'package.json')
+    if (existsSync(rootPkg)) {
+      await this.#loadPackage(rootPkg)
+
+      return
+    }
+    // else
+    await this.#loadContainer(this.#root)
   }
 }
 
