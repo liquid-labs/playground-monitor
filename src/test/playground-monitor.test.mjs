@@ -4,12 +4,19 @@ import * as fsPath from 'node:path'
 
 import { PlaygroundMonitor } from '../playground-monitor'
 
+const playgroundAPath = fsPath.join(__dirname, 'data', 'playgroundA')
+
 describe('PlaygroundMonitor', () => {
   test('raises exception when no root provided', () =>
     expect(() => new PlaygroundMonitor()).toThrow(/Must provide 'playgroundRoot'/))
 
+  test("'getProjectsData' returns all data", async() => {
+    const results = await (new PlaygroundMonitor({ root : playgroundAPath })).getProjectsData()
+    expect(Object.keys(results)).toHaveLength(3)
+    expect(results['@orgA/project-01'].packageJSON).toEqual({ name : '@orgA/project-01' })
+  })
+
   describe('loads playground', () => {
-    const playgroundAPath = fsPath.join(__dirname, 'data', 'playgroundA')
     let playground
 
     beforeAll(async() => {
