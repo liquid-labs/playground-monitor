@@ -21,14 +21,8 @@ const PlaygroundMonitor = class {
 
   async getProjectData(projectName) {
     await this.refreshProjects()
-    
-    const { projectPath } = this.#data[projectName] || {}
-    if (projectPath === undefined) {
-      return undefined
-    }
-    const packagePath = fsPath.join(projectPath, 'package.json')
 
-    return structuredClone(await this.#loadPackage(packagePath))
+    return structuredClone(this.#data[projectName])
   }
 
   async refreshProjects() {
@@ -47,7 +41,6 @@ const PlaygroundMonitor = class {
   }
 
   async #loadContainer(containerPath) {
-    console.log('loading container:', containerPath) // DEBUG
     const containerStat = await fs.stat(containerPath)
     this.#containers[containerPath] = containerStat
 
@@ -57,8 +50,6 @@ const PlaygroundMonitor = class {
       root     : containerPath,
       excludeRoot: true
     })
-
-    console.log('found subdirs:', subDirs, 'of containerPath:', containerPath) // DEBUG
 
     const ops = []
     for (const subDir of subDirs) {
@@ -75,7 +66,6 @@ const PlaygroundMonitor = class {
   }
 
   async #loadPackage(packagePath) {
-    console.log('loading package:', packagePath) // DEBUG
     try {
       const packageContents = await fs.readFile(packagePath, { encoding : 'utf8' })
     
