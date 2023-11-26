@@ -13,18 +13,18 @@ const PlaygroundMonitor = class {
   }
 
   async listProjects(sortFunc) {
-    await this.refreshProjects()
+    await this.#refreshProjects()
 
     return Object.keys(this.#data).sort(sortFunc)
   }
 
   async getProjectData(projectName) {
-    await this.refreshProjects()
+    await this.#refreshProjects()
 
     return structuredClone(this.#data[projectName])
   }
 
-  async refreshProjects() {
+  async #refreshProjects() {
     this.#data = {}
 
     const rootPkg = fsPath.join(this.#root, 'package.json')

@@ -11,7 +11,6 @@ describe('PlaygroundMonitor', () => {
 
     beforeAll(async() => {
       playground = new PlaygroundMonitor({ root : playgroundAPath })
-      await playground.refreshProjects()
     })
 
     test('and list projects', async() => expect(await playground.listProjects()).toHaveLength(3))
@@ -28,8 +27,6 @@ describe('PlaygroundMonitor', () => {
     })
 
     test('can re-load playground', async() => {
-      await playground.refreshProjects()
-
       expect(await playground.listProjects()).toHaveLength(3)
       expect(await playground.getProjectData('@orgA/project-02')).toBeTruthy() // 'misfiled-project'
     })
@@ -40,8 +37,6 @@ describe('PlaygroundMonitor', () => {
 
     test('when a new project is added (existing dir)', async() => {
       const playground = new PlaygroundMonitor({ root : playgroundBPath })
-
-      await playground.refreshProjects()
 
       const newProjPkgJSONPath = fsPath.join(playgroundBPath, 'empty-dir', 'package.json')
       const newProjPkgJSON = '{ "name": "empty-dir" }'
@@ -56,8 +51,6 @@ describe('PlaygroundMonitor', () => {
 
       const playground = new PlaygroundMonitor({ root : playgroundBPath })
       try {
-        await playground.refreshProjects()
-
         const newProjPkgJSONPath = fsPath.join(newProjPath, 'package.json')
         const newProjPkgJSON = '{ "name": "new-project" }'
 
@@ -73,7 +66,6 @@ describe('PlaygroundMonitor', () => {
 
     test('when project is deleted (nested dir)', async() => {
       const playground = new PlaygroundMonitor({ root : playgroundBPath })
-      await playground.refreshProjects()
 
       const projPath = fsPath.join(playgroundBPath, '@orgA', 'project-01')
 
@@ -84,7 +76,6 @@ describe('PlaygroundMonitor', () => {
 
     test('when project is deleted (just package.json)', async() => {
       const playground = new PlaygroundMonitor({ root : playgroundBPath })
-      await playground.refreshProjects()
 
       const projPath = fsPath.join(playgroundBPath, 'root-proj', 'package.json')
 
