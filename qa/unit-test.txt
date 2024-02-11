@@ -1,0 +1,28 @@
+Test git rev: 96fd2106fb5e9c4998a7158f305e9ece58ce22e4
+PASS test/playground-monitor.test.js
+  PlaygroundMonitor
+    ✓ raises exception when no root provided (8 ms)
+    ✓ 'getProjectsData' returns all data (2 ms)
+    loads playground
+      ✓ and list projects
+      ✓ and retrieve project data (1 ms)
+      ✓ loads projects regardless of location (1 ms)
+      ✓ can re-load playground (1 ms)
+      ✓ loads data when root is a package
+    tracks changes
+      ✓ when a new project is added (existing dir) (1 ms)
+      ✓ when a new project is added (dir and package.json added) (1 ms)
+      ✓ when project is deleted (nested dir) (1 ms)
+      ✓ when project is deleted (just package.json) (1 ms)
+
+------------------------|---------|----------|---------|---------|-------------------
+File                    | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+------------------------|---------|----------|---------|---------|-------------------
+All files               |    92.3 |    91.66 |     100 |   91.89 |                   
+ playground-monitor.mjs |    92.3 |    91.66 |     100 |   91.89 | 71-76             
+------------------------|---------|----------|---------|---------|-------------------
+Test Suites: 1 passed, 1 total
+Tests:       11 passed, 11 total
+Snapshots:   0 total
+Time:        0.139 s, estimated 1 s
+Ran all test suites.
