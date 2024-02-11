@@ -55,16 +55,26 @@ const PlaygroundMonitor = class {
   async #loadPackage(packagePath) {
     const packageContents = await fs.readFile(packagePath, { encoding : 'utf8' })
 
-    const packageJSON = JSON.parse(packageContents)
+    try {
+      const packageJSON = JSON.parse(packageContents)
 
-    const { name } = packageJSON
-    const data = {
-      packageJSON,
-      projectPath : fsPath.dirname(packagePath)
+      const { name } = packageJSON
+      const data = {
+        packageJSON,
+        projectPath : fsPath.dirname(packagePath)
+      }
+      this.#data[name] = data
+
+      return data
     }
-    this.#data[name] = data
+    catch (e) {
+      if (e instanceof SyntaxError) {
+        // Add the file
+        throw new SyntaxError(e.message + ` (file: ${packagePath})`)
+      }
 
-    return data
+      throw e
+    }
   }
 
   async #refreshProjects() {
